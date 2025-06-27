@@ -7,7 +7,7 @@ plugins {
 
 android {
     namespace = "com.victoriodev.anmpexpense"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.victoriodev.anmpexpense"
