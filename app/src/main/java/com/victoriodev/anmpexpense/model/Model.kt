@@ -1,40 +1,128 @@
 package com.victoriodev.anmpexpense.model
 
-import androidx.room.ColumnInfo
-import androidx.room.Entity
-import androidx.room.PrimaryKey
+import android.content.Context
+import androidx.room.*
 
-@Entity
+/* ========================== ENTITY ========================== */
+
+@Entity(tableName = "user")
 data class User(
-    @ColumnInfo(name="username")
-    var username:String,
-    @ColumnInfo(name="firstname")
-    var firstname:String,
-    @ColumnInfo(name="lastname")
-    var lastname:String,
-    @ColumnInfo(name="password")
-    var password:String
+    @ColumnInfo(name = "username")
+    var username: String,
+    @ColumnInfo(name = "firstname")
+    var firstname: String,
+    @ColumnInfo(name = "lastname")
+    var lastname: String,
+    @ColumnInfo(name = "password")
+    var password: String
 ) {
     @PrimaryKey(autoGenerate = true)
-    var uuid:Int =0
+    var userId: Int = 0
 }
 
+@Entity(tableName = "budgetCategory")
 data class BudgetCategory(
-    @ColumnInfo(name="title")
-    var title:String,
-    @ColumnInfo(name="notes")
-    var notes:String
+    @ColumnInfo(name = "title")
+    var title: String,
+    @ColumnInfo(name = "notes")
+    var notes: String,
+    @ColumnInfo(name = "userId")
+    var userId: Int // Menandakan milik user tertentu
 ) {
     @PrimaryKey(autoGenerate = true)
-    var uuid:Int =0
+    var uuid: Int = 0
 }
 
+@Entity(tableName = "expense")
 data class Expense(
-    @ColumnInfo(name="title")
-    var title:String,
-    @ColumnInfo(name="notes")
-    var notes:String
+    @ColumnInfo(name = "title")
+    var title: String,
+    @ColumnInfo(name = "notes")
+    var notes: String,
+    @ColumnInfo(name = "userId")
+    var userId: Int // Menandakan milik user tertentu
 ) {
     @PrimaryKey(autoGenerate = true)
-    var uuid:Int =0
+    var uuid: Int = 0
+}
+
+/* ========================== DAO ========================== */
+
+@Dao
+interface UserDao {
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    fun insertAll(vararg user: User)
+
+    @Query("SELECT * FROM user")
+    fun getAllUsers(): List<User>
+
+    @Query("SELECT * FROM user WHERE userId = :id LIMIT 1")
+    fun getUserByID(id:Int):User
+}
+
+@Dao
+interface BudgetCategoryDao {
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    fun insertAll(vararg budgetCategory: BudgetCategory)
+
+    @Query("SELECT * FROM budgetCategory WHERE userId = :userId")
+    fun selectAllTodo(userId: Int): List<BudgetCategory>
+
+    @Query("SELECT * FROM budgetCategory WHERE uuid = :uuid AND userId = :userId LIMIT 1")
+    fun selectTodo(uuid: Int, userId: Int): BudgetCategory?
+
+    @Query("DELETE FROM budgetCategory WHERE uuid = :uuid AND userId = :userId")
+    fun deleteTodo(uuid: Int, userId: Int)
+}
+
+@Dao
+interface ExpenseDao {
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    fun insertAll(vararg expense: Expense)
+
+    @Query("SELECT * FROM expense WHERE userId = :userId")
+    fun selectAllTodo(userId: Int): List<Expense>
+
+    @Query("SELECT * FROM expense WHERE uuid = :uuid AND userId = :userId LIMIT 1")
+    fun selectTodo(uuid: Int, userId: Int): Expense?
+
+    @Query("DELETE FROM expense WHERE uuid = :uuid AND userId = :userId")
+    fun deleteTodo(uuid: Int, userId: Int)
+}
+
+
+/* ========================== DATABASE ========================== */
+
+@Database(
+    entities = [User::class, BudgetCategory::class, Expense::class],
+    version = 1
+)
+abstract class AppDatabase : RoomDatabase() {
+    abstract fun userDao(): UserDao
+    abstract fun budgetCategoryDao(): BudgetCategoryDao
+    abstract fun expenseDao(): ExpenseDao
+
+    companion object {
+        @Volatile
+        private var instance: AppDatabase? = null
+        private val LOCK = Any()
+
+        fun buildDatabase(context: Context): AppDatabase {
+            return Room.databaseBuilder(
+                context.applicationContext,
+                AppDatabase::class.java,
+                "anmpexpense.db"
+            ).build()
+        }
+
+        operator fun invoke(context: Context): AppDatabase {
+            return instance ?: synchronized(LOCK) {
+                instance ?: buildDatabase(context).also {
+                    instance = it
+                }
+            }
+        }
+    }
 }
