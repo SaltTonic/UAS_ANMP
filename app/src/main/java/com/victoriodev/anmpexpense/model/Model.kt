@@ -2,6 +2,7 @@ package com.victoriodev.anmpexpense.model
 
 import android.content.Context
 import androidx.room.*
+import java.util.Date
 
 /* ========================== ENTITY ========================== */
 
@@ -22,12 +23,12 @@ data class User(
 
 @Entity(tableName = "budgetCategory")
 data class BudgetCategory(
-    @ColumnInfo(name = "title")
-    var title: String,
-    @ColumnInfo(name = "notes")
-    var notes: String,
+    @ColumnInfo(name = "nameBudget")
+    var nama: String,
+    @ColumnInfo(name = "nominalBudget")
+    var nominal: Int,
     @ColumnInfo(name = "userId")
-    var userId: Int // Menandakan milik user tertentu
+    var userId: Int
 ) {
     @PrimaryKey(autoGenerate = true)
     var uuid: Int = 0
@@ -35,12 +36,16 @@ data class BudgetCategory(
 
 @Entity(tableName = "expense")
 data class Expense(
-    @ColumnInfo(name = "title")
-    var title: String,
-    @ColumnInfo(name = "notes")
-    var notes: String,
+    @ColumnInfo(name = "nameExpense")
+    var name: String,
+    @ColumnInfo(name = "nominalExpense")
+    var nominal: Int,
+    @ColumnInfo(name = "dateExpense")
+    var date: Date,
+    @ColumnInfo(name = "budgetCategory")
+    var budgetCategoryId: Int,
     @ColumnInfo(name = "userId")
-    var userId: Int // Menandakan milik user tertentu
+    var userId: Int
 ) {
     @PrimaryKey(autoGenerate = true)
     var uuid: Int = 0
