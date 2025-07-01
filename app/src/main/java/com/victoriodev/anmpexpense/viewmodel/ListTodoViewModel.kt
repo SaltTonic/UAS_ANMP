@@ -34,10 +34,9 @@ class ListTodoViewModel(application: Application) : AndroidViewModel(application
             try {
                 val db = AppDatabase(getApplication())
 
-                // Tetap ambil user berdasarkan userId
                 val user = db.userDao().getUserByID(userId)
 
-                // Ambil semua budget dan expense TANPA userId
+
                 val budgetList = db.budgetCategoryDao().selectAllTodo(userId)
                 val expenseList = db.expenseDao().selectAllTodo(userId)
 
