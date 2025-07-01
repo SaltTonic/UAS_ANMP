@@ -29,11 +29,11 @@ class FragmentListBudget : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         viewModel = ViewModelProvider(this).get(ListTodoViewModel::class.java)
-        viewModel.refresh(1) //userid ne masih sementara
-        binding.recyclerView.layoutManager = LinearLayoutManager(context)
-        binding.recyclerView.adapter = listBudgetAdapter
+        viewModel.refresh(1) //userid ne masih sementara soale masih belum disambungin ke login :)
+        binding.recyclerViewBudget.layoutManager = LinearLayoutManager(context)
+        binding.recyclerViewBudget.adapter = listBudgetAdapter
 
-        binding.btnFab.setOnClickListener {
+        binding.btnFabBudget.setOnClickListener {
             val action = FragmentListBudgetDirections.actionCreateBudgetTodo()
             Navigation.findNavController(it).navigate(action)
 
