@@ -2,7 +2,6 @@ package com.victoriodev.anmpexpense.model
 
 import android.content.Context
 import androidx.room.*
-import java.util.Date
 
 /* ========================== ENTITY ========================== */
 
@@ -41,7 +40,7 @@ data class Expense(
     @ColumnInfo(name = "nominalExpense")
     var nominal: Int,
     @ColumnInfo(name = "dateExpense")
-    var date: Date,
+    var date: Long,
     @ColumnInfo(name = "budgetCategory")
     var budgetCategoryId: Int,
     @ColumnInfo(name = "userId")

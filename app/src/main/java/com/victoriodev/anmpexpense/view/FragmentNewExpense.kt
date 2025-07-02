@@ -75,7 +75,7 @@ class FragmentNewExpense : Fragment() {
         binding.btnAddExpense.setOnClickListener {
             val nominalText = binding.txtInputNewNominal.text.toString()
             val note = binding.txtInputNewNote.text.toString()
-            val date = Date()
+            val date = System.currentTimeMillis()
 
             if (nominalText.isNotBlank() && selectedBudgetId != null) {
                 val nominal = nominalText.toIntOrNull()
