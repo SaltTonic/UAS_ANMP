@@ -24,6 +24,8 @@ class LoginActivity : AppCompatActivity() {
         // Initialize user session
         userSession = UserSession(this)
 
+
+
         // Check if user is already logged in
         if (userSession.hasValidSession()) {
             navigateToMain()

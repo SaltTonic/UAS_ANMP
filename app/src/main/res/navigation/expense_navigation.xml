@@ -3,20 +3,44 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/expense_navigation"
-    app:startDestination="@id/fragmentNewBudget">
+    app:startDestination="@id/itemBudget">
 
+    <fragment
+        android:id="@+id/itemBudget"
+        android:name="com.victoriodev.anmpexpense.view.FragmentListBudget"
+        android:label="fragment_list_budget"
+        tools:layout="@layout/fragment_list_budget">
+        <action
+            android:id="@+id/actionCreateBudgetTodo"
+            app:destination="@id/fragmentNewBudget" />
+    </fragment>
+    <fragment
+        android:id="@+id/itemExpense"
+        android:name="com.victoriodev.anmpexpense.view.FragmentListExpense"
+        android:label="fragment_list_expense"
+        tools:layout="@layout/fragment_list_expense" >
+        <action
+            android:id="@+id/actionToNewExpense"
+            app:destination="@id/fragmentNewExpense" />
+    </fragment>
+    <fragment
+        android:id="@+id/itemReport"
+        android:name="com.victoriodev.anmpexpense.view.FragmentListReport"
+        android:label="fragment_list_report"
+        tools:layout="@layout/fragment_list_report" />
+    <fragment
+        android:id="@+id/itemProfile"
+        android:name="com.victoriodev.anmpexpense.view.FragmentProfile"
+        android:label="fragment_profile"
+        tools:layout="@layout/fragment_profile" />
     <fragment
         android:id="@+id/fragmentNewBudget"
         android:name="com.victoriodev.anmpexpense.view.FragmentNewBudget"
         android:label="fragment_new_budget"
         tools:layout="@layout/fragment_new_budget" />
     <fragment
-        android:id="@+id/fragmentListBudget"
-        android:name="com.victoriodev.anmpexpense.view.FragmentListBudget"
-        android:label="fragment_list_budget"
-        tools:layout="@layout/fragment_list_budget" >
-        <action
-            android:id="@+id/actionCreateBudgetTodo"
-            app:destination="@id/fragmentNewBudget" />
-    </fragment>
+        android:id="@+id/fragmentNewExpense"
+        android:name="com.victoriodev.anmpexpense.view.FragmentNewExpense"
+        android:label="fragment_new_expense"
+        tools:layout="@layout/fragment_new_expense" />
 </navigation>

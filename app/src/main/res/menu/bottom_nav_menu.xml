@@ -2,22 +2,22 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item
-        android:id="@+id/nav_dashboard"
+        android:id="@+id/itemExpense"
         android:icon="@drawable/baseline_credit_card_24"
         android:title="" />
 
     <item
-        android:id="@+id/nav_analytics"
+        android:id="@+id/itemBudget"
         android:icon="@drawable/baseline_pie_chart_24"
         android:title="" />
 
     <item
-        android:id="@+id/nav_stats"
+        android:id="@+id/itemReport"
         android:icon="@drawable/baseline_bar_chart_24"
         android:title="" />
 
     <item
-        android:id="@+id/nav_profile"
+        android:id="@+id/itemProfile"
         android:icon="@drawable/baseline_person_24"
         android:title="Profile" />
 </menu>
