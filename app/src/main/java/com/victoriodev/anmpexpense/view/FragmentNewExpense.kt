@@ -5,21 +5,28 @@ import android.view.*
 import android.widget.*
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import com.victoriodev.anmpexpense.databinding.FragmentNewExpenseBinding
 import com.victoriodev.anmpexpense.model.AppDatabase
 import com.victoriodev.anmpexpense.model.BudgetCategory
 import com.victoriodev.anmpexpense.model.Expense
+import com.victoriodev.anmpexpense.util.UserSession
 import com.victoriodev.anmpexpense.viewmodel.DetailTodoViewModel
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.*
 
 class FragmentNewExpense : Fragment() {
+
     private lateinit var binding: FragmentNewExpenseBinding
     private lateinit var viewModel: DetailTodoViewModel
-    private var budgetList: List<BudgetCategory> = listOf()
-    private var selectedBudgetId: Int? = null
-    private val userId = 1 // Sesuaikan dengan user login nanti
+    private lateinit var userSession: UserSession
+
+    private var budgetList: List<BudgetCategory> = emptyList()
+    private var selectedBudget: BudgetCategory? = null
+    private var userId: Int = -1   // di‑set saat onViewCreated
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -30,105 +37,115 @@ class FragmentNewExpense : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        userSession = UserSession(requireContext())
+        userId = userSession.getCurrentUserId()
+
+        if (userId == -1) {
+            toast("Silakan login terlebih dahulu")
+            return
+        }
+
         viewModel = ViewModelProvider(this)[DetailTodoViewModel::class.java]
 
-        // Tampilkan tanggal hari ini
-        val currentDate = Date()
-        val sdf = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
-        binding.txtDate.text = sdf.format(currentDate)
+        binding.txtDate.text = SimpleDateFormat("dd MMM yyyy", Locale.getDefault()).format(Date())
 
-        // Ambil data kategori budget dari DB
-        CoroutineScope(Dispatchers.IO).launch {
+        // --- Muat list kategori budget milik user login ---
+        lifecycleScope.launch(Dispatchers.IO) {
             val db = AppDatabase(requireContext())
             budgetList = db.budgetCategoryDao().selectAllTodo(userId)
-            val spinnerItems = budgetList.map { it.nama }
 
             withContext(Dispatchers.Main) {
-                val adapter = ArrayAdapter(
+                val spinnerAdapter = ArrayAdapter(
                     requireContext(),
                     android.R.layout.simple_spinner_dropdown_item,
-                    spinnerItems
+                    budgetList.map { it.nama }
                 )
-                binding.spinnerKategori.adapter = adapter
-
-                binding.spinnerKategori.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-                    override fun onItemSelected(
-                        parent: AdapterView<*>,
-                        view: View,
-                        position: Int,
-                        id: Long
-                    ) {
-                        selectedBudgetId = budgetList[position].uuid
-                        val selectedBudget = budgetList[position]
-
-                        CoroutineScope(Dispatchers.IO).launch {
-                            val used = getUsedAmountForCategory(selectedBudget.uuid)
-                            val max = selectedBudget.nominal
-
-                            val progress = if (max == 0) 0 else (used * 100 / max)
-
-                            withContext(Dispatchers.Main) {
-                                binding.progressBar.progress = progress
-                                binding.txtUsedNew.text = "Used: Rp $used"
-                                binding.txtMaxNew.text = "Max: Rp $max"
-                            }
-                        }
-                    }
-
-                    override fun onNothingSelected(parent: AdapterView<*>) {}
-                }
-
+                binding.spinnerKategori.adapter = spinnerAdapter
             }
         }
 
-        binding.btnAddExpense.setOnClickListener {
-            val nominalText = binding.txtInputNewNominal.text.toString()
-            val note = binding.txtInputNewNote.text.toString()
-            val date = System.currentTimeMillis()
-
-            if (nominalText.isNotBlank() && selectedBudgetId != null) {
-                val nominal = nominalText.toIntOrNull()
-                if (nominal != null) {
-                    val selectedBudget = budgetList.first { it.uuid == selectedBudgetId }
-
-                    // Cek jika nominal expense melebihi budget
-                    if (nominal > selectedBudget.nominal) {
-                        Toast.makeText(requireContext(), "Nominal melebihi sisa budget", Toast.LENGTH_SHORT).show()
-                        return@setOnClickListener
-                    }
-
-                    // Buat data expense
-                    val newExpense = Expense(
-                        name = note,
-                        nominal = nominal,
-                        date = date,
-                        budgetCategoryId = selectedBudgetId!!,
-                        userId = userId
-                    )
-
-                    // Simpan expense
-                    viewModel.addExpense(listOf(newExpense))
-
-                    // Update budget - kurangi nilai nominal budget
-                    selectedBudget.nominal -= nominal
-                    viewModel.updateBudgetCategory(selectedBudget.uuid, selectedBudget.nominal)
-
-                    Toast.makeText(requireContext(), "Expense ditambahkan", Toast.LENGTH_SHORT).show()
-                    requireActivity().onBackPressed()
-                } else {
-                    Toast.makeText(requireContext(), "Nominal harus berupa angka", Toast.LENGTH_SHORT).show()
-                }
-            } else {
-                Toast.makeText(requireContext(), "Lengkapi semua data", Toast.LENGTH_SHORT).show()
+        binding.spinnerKategori.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(
+                parent: AdapterView<*>, v: View?, position: Int, id: Long
+            ) {
+                selectedBudget = budgetList[position]
+                updateProgressUI()
             }
+            override fun onNothingSelected(parent: AdapterView<*>) {}
         }
 
+        binding.btnAddExpense.setOnClickListener { addExpense() }
     }
 
-    private suspend fun getUsedAmountForCategory(categoryId: Int): Int {
+    /* ------------------- Tambah Expense ------------------- */
+    private fun addExpense() {
+        val nominalStr = binding.txtInputNewNominal.text.toString().trim()
+        val note       = binding.txtInputNewNote.text.toString().trim()
+        val budget     = selectedBudget
+
+        if (budget == null || nominalStr.isBlank()) {
+            toast("Lengkapi semua data")
+            return
+        }
+
+        val nominal = nominalStr.toIntOrNull()
+        if (nominal == null || nominal <= 0) {
+            toast("Nominal harus berupa angka > 0")
+            return
+        }
+
+        lifecycleScope.launch(Dispatchers.IO) {
+            val used = getUsedAmountForCategory(budget.uuid)
+            val remaining = budget.nominal - used
+
+            if (nominal > remaining) {
+                withContext(Dispatchers.Main) {
+                    toast("Nominal melebihi sisa budget (Rp $remaining)")
+                }
+                return@launch
+            }
+
+            val expense = Expense(
+                name = if (note.isBlank()) "Expense" else note,
+                nominal = nominal,
+                date = System.currentTimeMillis(),
+                budgetCategoryId = budget.uuid,
+                userId = userId                // <‑‑ pakai userId dari session
+            )
+            viewModel.addExpense(listOf(expense))
+
+            withContext(Dispatchers.Main) {
+                toast("Expense ditambahkan")
+                binding.txtInputNewNominal.text?.clear()
+                binding.txtInputNewNote.text?.clear()
+                updateProgressUI()
+            }
+        }
+    }
+
+    /* ------------------- Progress & helper ------------------- */
+    private fun updateProgressUI() {
+        val budget = selectedBudget ?: return
+        lifecycleScope.launch(Dispatchers.IO) {
+            val used = getUsedAmountForCategory(budget.uuid)
+            val max  = budget.nominal
+            val pct  = if (max == 0) 0 else (used * 100 / max)
+
+            withContext(Dispatchers.Main) {
+                binding.progressBar.progress = pct
+                binding.txtUsedNew.text = "Used: Rp $used"
+                binding.txtMaxNew.text  = "Max: Rp $max"
+            }
+        }
+    }
+
+    private suspend fun getUsedAmountForCategory(catId: Int): Int {
         val db = AppDatabase(requireContext())
-        val expenses = db.expenseDao().selectAllByCategory(categoryId)
-        return expenses.sumOf { it.nominal }
+        return db.expenseDao().getTotalExpenseByBudget(catId) ?: 0
     }
 
+    private fun toast(msg: String) =
+        Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show()
 }

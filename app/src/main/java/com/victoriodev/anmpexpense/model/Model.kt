@@ -62,6 +62,10 @@ interface UserDao {
 
     @Query("SELECT * FROM user WHERE userId = :id LIMIT 1")
     fun getUserByID(id: Int): User
+
+    @Query("UPDATE user SET password = :newPass WHERE userId = :id")
+    fun updatePassword(id: Int, newPass: String)
+
 }
 
 @Dao

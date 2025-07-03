@@ -94,24 +94,20 @@ class FragmentListExpense : Fragment() {
     private fun showExpenseDialog(expense: Expense) {
         val dialogView = layoutInflater.inflate(R.layout.expense_item_detail, null)
 
-        // Format tanggal
         val formattedDate = SimpleDateFormat("dd MMM yyyy HH:mm", Locale.getDefault())
             .format(Date(expense.date))
 
-        // Set data ke komponen dialog
         dialogView.findViewById<TextView>(R.id.txtDialogDate).text = formattedDate
         dialogView.findViewById<TextView>(R.id.txtDialogNominal).text = "Rp ${expense.nominal}"
         dialogView.findViewById<TextView>(R.id.txtDialogNote).text = expense.name
         dialogView.findViewById<TextView>(R.id.txtDialogCategory).text =
             "Kategori: ${latestBudgetMap[expense.budgetCategoryId] ?: "-"}"
 
-        // Bangun dialog
         val alertDialog = AlertDialog.Builder(requireContext())
             .setView(dialogView)
             .setCancelable(false)
             .create()
 
-        // Tombol close
         dialogView.findViewById<Button>(R.id.btnDialogClose).setOnClickListener {
             alertDialog.dismiss()
         }

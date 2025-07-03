@@ -50,7 +50,7 @@ class FragmentNewAccount : Fragment() {
                 is RegisterResult.Error -> {
                     Toast.makeText(requireContext(), result.message, Toast.LENGTH_SHORT).show()
                 }
-                null -> { /* Do nothing */ }
+                null -> { }
             }
         }
 
@@ -96,7 +96,6 @@ class FragmentNewAccount : Fragment() {
         @JvmStatic
         fun newInstance() = FragmentNewAccount().apply {
             arguments = Bundle().apply {
-                // Add arguments if needed
             }
         }
     }
