@@ -59,16 +59,25 @@ class FragmentNewExpense : Fragment() {
                         id: Long
                     ) {
                         selectedBudgetId = budgetList[position].uuid
-                        val max = budgetList[position].nominal
-                        val used = getUsedAmountForCategory(selectedBudgetId!!)
-                        val progress = if (max == 0) 0 else (used * 100 / max)
-                        binding.progressBar.progress = progress
-                        binding.txtUsedNew.text = "Used: $used"
-                        binding.txtMaxNew.text = "Max: $max"
+                        val selectedBudget = budgetList[position]
+
+                        CoroutineScope(Dispatchers.IO).launch {
+                            val used = getUsedAmountForCategory(selectedBudget.uuid)
+                            val max = selectedBudget.nominal
+
+                            val progress = if (max == 0) 0 else (used * 100 / max)
+
+                            withContext(Dispatchers.Main) {
+                                binding.progressBar.progress = progress
+                                binding.txtUsedNew.text = "Used: Rp $used"
+                                binding.txtMaxNew.text = "Max: Rp $max"
+                            }
+                        }
                     }
 
                     override fun onNothingSelected(parent: AdapterView<*>) {}
                 }
+
             }
         }
 
@@ -80,6 +89,15 @@ class FragmentNewExpense : Fragment() {
             if (nominalText.isNotBlank() && selectedBudgetId != null) {
                 val nominal = nominalText.toIntOrNull()
                 if (nominal != null) {
+                    val selectedBudget = budgetList.first { it.uuid == selectedBudgetId }
+
+                    // Cek jika nominal expense melebihi budget
+                    if (nominal > selectedBudget.nominal) {
+                        Toast.makeText(requireContext(), "Nominal melebihi sisa budget", Toast.LENGTH_SHORT).show()
+                        return@setOnClickListener
+                    }
+
+                    // Buat data expense
                     val newExpense = Expense(
                         name = note,
                         nominal = nominal,
@@ -88,7 +106,12 @@ class FragmentNewExpense : Fragment() {
                         userId = userId
                     )
 
+                    // Simpan expense
                     viewModel.addExpense(listOf(newExpense))
+
+                    // Update budget - kurangi nilai nominal budget
+                    selectedBudget.nominal -= nominal
+                    viewModel.updateBudgetCategory(selectedBudget.uuid, selectedBudget.nominal)
 
                     Toast.makeText(requireContext(), "Expense ditambahkan", Toast.LENGTH_SHORT).show()
                     requireActivity().onBackPressed()
@@ -99,10 +122,13 @@ class FragmentNewExpense : Fragment() {
                 Toast.makeText(requireContext(), "Lengkapi semua data", Toast.LENGTH_SHORT).show()
             }
         }
+
     }
 
-    private fun getUsedAmountForCategory(categoryId: Int): Int {
-        // Tambahkan logika kalkulasi real dari DB jika perlu
-        return 0
+    private suspend fun getUsedAmountForCategory(categoryId: Int): Int {
+        val db = AppDatabase(requireContext())
+        val expenses = db.expenseDao().selectAllByCategory(categoryId)
+        return expenses.sumOf { it.nominal }
     }
+
 }

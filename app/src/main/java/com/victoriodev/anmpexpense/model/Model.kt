@@ -61,12 +61,11 @@ interface UserDao {
     fun getAllUsers(): List<User>
 
     @Query("SELECT * FROM user WHERE userId = :id LIMIT 1")
-    fun getUserByID(id:Int):User
+    fun getUserByID(id: Int): User
 }
 
 @Dao
 interface BudgetCategoryDao {
-
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertAll(vararg budgetCategory: BudgetCategory)
 
@@ -78,11 +77,17 @@ interface BudgetCategoryDao {
 
     @Query("DELETE FROM budgetCategory WHERE uuid = :uuid AND userId = :userId")
     fun deleteTodo(uuid: Int, userId: Int)
+
+    @Query("UPDATE budgetCategory SET nominalBudget = :newNominal WHERE uuid = :uuid")
+    fun updateNominal(uuid: Int, newNominal: Int)
+
+    @Query("UPDATE budgetCategory SET nameBudget = :newNama, nominalBudget = :newNominal WHERE uuid = :uuid")
+    fun updateBudgetCategoryFull(uuid: Int, newNama: String, newNominal: Int)
+
 }
 
 @Dao
 interface ExpenseDao {
-
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertAll(vararg expense: Expense)
 
@@ -94,8 +99,14 @@ interface ExpenseDao {
 
     @Query("DELETE FROM expense WHERE uuid = :uuid AND userId = :userId")
     fun deleteTodo(uuid: Int, userId: Int)
-}
 
+    @Query("SELECT * FROM expense WHERE budgetCategory = :categoryId")
+    fun selectAllByCategory(categoryId: Int): List<Expense>
+
+    @Query("SELECT SUM(nominalExpense) FROM expense WHERE budgetCategory = :budgetCategoryId")
+    fun getTotalExpenseByBudget(budgetCategoryId: Int): Int?
+
+}
 
 /* ========================== DATABASE ========================== */
 

@@ -13,6 +13,21 @@
         <action
             android:id="@+id/actionCreateBudgetTodo"
             app:destination="@id/fragmentNewBudget" />
+        <action
+            android:id="@+id/actionEditBudgetTodo"
+            app:destination="@id/fragmentEditBudget">
+
+            <argument
+                android:name="uuid"
+                app:argType="integer" />
+            <argument
+                android:name="nama"
+                app:argType="string" />
+            <argument
+                android:name="nominal"
+                app:argType="integer" />
+        </action>
+
     </fragment>
     <fragment
         android:id="@+id/itemExpense"
@@ -43,4 +58,9 @@
         android:name="com.victoriodev.anmpexpense.view.FragmentNewExpense"
         android:label="fragment_new_expense"
         tools:layout="@layout/fragment_new_expense" />
+    <fragment
+        android:id="@+id/fragmentEditBudget"
+        android:name="com.victoriodev.anmpexpense.view.FragmentEditBudget"
+        android:label="fragment_edit_budget"
+        tools:layout="@layout/fragment_edit_budget" />
 </navigation>

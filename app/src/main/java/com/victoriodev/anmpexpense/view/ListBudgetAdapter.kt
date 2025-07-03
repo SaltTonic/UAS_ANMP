@@ -6,10 +6,12 @@ import androidx.recyclerview.widget.RecyclerView
 import com.victoriodev.anmpexpense.databinding.BudgetListItemBinding
 import com.victoriodev.anmpexpense.model.BudgetCategory
 
-class ListBudgetAdapter(private val budgetList: ArrayList<BudgetCategory>) :
-    RecyclerView.Adapter<ListBudgetAdapter.BudgetViewHolder>() {
+class ListBudgetAdapter(
+    private val budgetList: ArrayList<BudgetCategory>,
+    private val onItemClick: (BudgetCategory) -> Unit
+) : RecyclerView.Adapter<ListBudgetAdapter.BudgetViewHolder>() {
 
-    class BudgetViewHolder(var binding: BudgetListItemBinding) :
+    class BudgetViewHolder(val binding: BudgetListItemBinding) :
         RecyclerView.ViewHolder(binding.root)
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BudgetViewHolder {
@@ -25,6 +27,11 @@ class ListBudgetAdapter(private val budgetList: ArrayList<BudgetCategory>) :
         val budget = budgetList[position]
         holder.binding.txtBudgetKategori.text = budget.nama
         holder.binding.txtNominalBudget.text = "Rp ${budget.nominal}"
+
+        // Event klik untuk navigasi atau aksi lain
+        holder.itemView.setOnClickListener {
+            onItemClick(budget)
+        }
     }
 
     fun updateBudgetList(newList: List<BudgetCategory>) {

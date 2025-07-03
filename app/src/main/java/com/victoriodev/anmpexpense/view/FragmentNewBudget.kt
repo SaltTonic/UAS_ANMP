@@ -29,7 +29,7 @@ class FragmentNewBudget : Fragment() {
         viewModel = ViewModelProvider(this)[DetailTodoViewModel::class.java]
 
         binding.btnAddNewBudget.setOnClickListener {
-            val nama = binding.txtTitleBudget.text.toString()
+            val nama = binding.txtInputNameBudgetNew.text.toString()
             val nominalText = binding.txtxInputBudgetNominalNew.text.toString()
 
             if (nama.isNotBlank() && nominalText.isNotBlank()) {
