@@ -19,7 +19,7 @@ data class User(
     @PrimaryKey(autoGenerate = true)
     var userId: Int = 0
 }
-//tes push
+
 @Entity(tableName = "budgetCategory")
 data class BudgetCategory(
     @ColumnInfo(name = "nameBudget")
