@@ -28,7 +28,6 @@ class ListBudgetAdapter(
         holder.binding.txtBudgetKategori.text = budget.nama
         holder.binding.txtNominalBudget.text = "Rp ${budget.nominal}"
 
-        // Event klik untuk navigasi atau aksi lain
         holder.itemView.setOnClickListener {
             onItemClick(budget)
         }

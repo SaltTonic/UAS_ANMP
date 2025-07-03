@@ -37,7 +37,6 @@ class FragmentLogin : Fragment() {
         setupObservers()
         setupClickListeners()
 
-        // Check if user is already logged in
         if (authViewModel.checkSession()) {
             navigateToMain()
         }
@@ -56,7 +55,7 @@ class FragmentLogin : Fragment() {
                 is LoginResult.Error -> {
                     Toast.makeText(requireContext(), result.message, Toast.LENGTH_SHORT).show()
                 }
-                null -> { /* Do nothing */ }
+                null -> { }
             }
         }
 
@@ -102,7 +101,6 @@ class FragmentLogin : Fragment() {
         @JvmStatic
         fun newInstance() = FragmentLogin().apply {
             arguments = Bundle().apply {
-                // Add arguments if needed
             }
         }
     }

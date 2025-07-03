@@ -17,7 +17,6 @@ class DetailTodoViewModel(application: Application)
 
     private val job = Job()
 
-    // Untuk BudgetCategory
     fun addBudgetCategory(list: List<BudgetCategory>) {
         launch {
             list.forEach {
@@ -28,13 +27,6 @@ class DetailTodoViewModel(application: Application)
         }
     }
 
-    fun updateBudgetCategory(uuid: Int, nominal: Int) {
-        launch {
-            val db = AppDatabase(getApplication())
-            db.budgetCategoryDao().updateNominal(uuid, nominal)
-        }
-    }
-
     fun updateBudgetCategoryFull(uuid: Int, nama: String, nominal: Int, onResult: (Boolean) -> Unit) {
         launch {
             val db = AppDatabase(getApplication())
@@ -42,25 +34,19 @@ class DetailTodoViewModel(application: Application)
 
             if (nominal >= totalExpense) {
                 db.budgetCategoryDao().updateBudgetCategoryFull(uuid, nama, nominal)
-                onResult(true) // update berhasil
+                onResult(true)
             } else {
-                onResult(false) // gagal update karena nominal terlalu kecil
+                onResult(false)
             }
         }
     }
 
-
-
-
-    // Untuk Expense
     fun addExpense(list: List<Expense>) {
         launch {
             val db = AppDatabase(getApplication())
             db.expenseDao().insertAll(*list.toTypedArray())
         }
     }
-
-
 
 
     override val coroutineContext: CoroutineContext

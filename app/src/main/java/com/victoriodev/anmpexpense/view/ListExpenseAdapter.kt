@@ -11,7 +11,7 @@ import java.util.*
 class ListExpenseAdapter(
     private val expenseList: ArrayList<Expense>,
     private var budgetMap: Map<Int, String>,
-    private val onChipClick: (Expense) -> Unit      // ⬅️ callback klik chip
+    private val onChipClick: (Expense) -> Unit
 ) : RecyclerView.Adapter<ListExpenseAdapter.ExpenseViewHolder>() {
 
     inner class ExpenseViewHolder(val binding: ExpenseListItemBinding) :
@@ -38,7 +38,7 @@ class ListExpenseAdapter(
         chip.text = namaKategori
 
         chip.setOnClickListener {
-            onChipClick(expense)            // ⬅️ panggil callback
+            onChipClick(expense)
         }
     }
 

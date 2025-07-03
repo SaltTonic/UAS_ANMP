@@ -2,6 +2,7 @@ package com.victoriodev.anmpexpense.view
 
 import android.os.Bundle
 import android.view.*
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.Navigation
@@ -15,7 +16,7 @@ class FragmentListBudget : Fragment() {
     private lateinit var binding: FragmentListBudgetBinding
     private lateinit var viewModel: ListTodoViewModel
     private lateinit var userSession: UserSession
-    private lateinit var adapter: ListBudgetAdapter  // adapter dideklarasi di sini
+    private lateinit var adapter: ListBudgetAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -31,45 +32,49 @@ class FragmentListBudget : Fragment() {
         userSession = UserSession(requireContext())
         val userId = userSession.getCurrentUserId()
 
-        // ViewModel
+        if (userId == -1) {
+            Toast.makeText(requireContext(), "Silakan login terlebih dahulu", Toast.LENGTH_SHORT).show()
+            return
+        }
+
         viewModel = ViewModelProvider(this)[ListTodoViewModel::class.java]
         viewModel.refresh(userId)
 
-        // Inisialisasi adapter dengan callback klik
         adapter = ListBudgetAdapter(arrayListOf()) { budget ->
-            // SafeArgs action – pastikan sudah terdefinisi di nav_graph
             val action = FragmentListBudgetDirections.actionEditBudgetTodo(
                 uuid = budget.uuid,
                 nama = budget.nama,
                 nominal = budget.nominal
             )
-
             Navigation.findNavController(view).navigate(action)
-
         }
 
         binding.recyclerViewBudget.layoutManager = LinearLayoutManager(requireContext())
         binding.recyclerViewBudget.adapter = adapter
 
-        // FAB tambah budget
         binding.btnFabBudget.setOnClickListener {
-            val action = FragmentListBudgetDirections.actionCreateBudgetTodo()
-            Navigation.findNavController(it).navigate(action)
+            if (userId == -1) {
+                Toast.makeText(requireContext(), "Tidak dapat menambahkan budget. Login terlebih dahulu.", Toast.LENGTH_SHORT).show()
+            } else {
+                val action = FragmentListBudgetDirections.actionCreateBudgetTodo()
+                Navigation.findNavController(it).navigate(action)
+            }
         }
 
         observeViewModel()
     }
 
-    /** Observe LiveData dari ViewModel */
     private fun observeViewModel() {
         viewModel.budgetCategoryLD.observe(viewLifecycleOwner) { list ->
             adapter.updateBudgetList(list)
         }
     }
 
-    /** Refresh ulang saat fragment kembali aktif */
     override fun onResume() {
         super.onResume()
-        viewModel.refresh(userSession.getCurrentUserId())
+        val userId = userSession.getCurrentUserId()
+        if (userId != -1) {
+            viewModel.refresh(userId)
+        }
     }
 }

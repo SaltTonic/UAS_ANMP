@@ -21,12 +21,8 @@ class LoginActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Initialize user session
         userSession = UserSession(this)
 
-
-
-        // Check if user is already logged in
         if (userSession.hasValidSession()) {
             navigateToMain()
             return
