@@ -6,7 +6,6 @@ import android.widget.*
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
-import androidx.navigation.fragment.findNavController
 import com.victoriodev.anmpexpense.databinding.FragmentNewExpenseBinding
 import com.victoriodev.anmpexpense.model.AppDatabase
 import com.victoriodev.anmpexpense.model.BudgetCategory
@@ -27,7 +26,7 @@ class FragmentNewExpense : Fragment() {
 
     private var budgetList: List<BudgetCategory> = emptyList()
     private var selectedBudget: BudgetCategory? = null
-    private var userId: Int = -1
+    private var userId: Int = -1   // di‑set saat onViewCreated
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -52,6 +51,7 @@ class FragmentNewExpense : Fragment() {
 
         binding.txtDate.text = SimpleDateFormat("dd MMM yyyy", Locale.getDefault()).format(Date())
 
+        // --- Muat list kategori budget milik user login ---
         lifecycleScope.launch(Dispatchers.IO) {
             val db = AppDatabase(requireContext())
             budgetList = db.budgetCategoryDao().selectAllTodo(userId)
@@ -79,6 +79,7 @@ class FragmentNewExpense : Fragment() {
         binding.btnAddExpense.setOnClickListener { addExpense() }
     }
 
+    /* ------------------- Tambah Expense ------------------- */
     private fun addExpense() {
         val nominalStr = binding.txtInputNewNominal.text.toString().trim()
         val note       = binding.txtInputNewNote.text.toString().trim()
@@ -111,17 +112,20 @@ class FragmentNewExpense : Fragment() {
                 nominal = nominal,
                 date = System.currentTimeMillis(),
                 budgetCategoryId = budget.uuid,
-                userId = userId
+                userId = userId                // <‑‑ pakai userId dari session
             )
             viewModel.addExpense(listOf(expense))
 
             withContext(Dispatchers.Main) {
                 toast("Expense ditambahkan")
-                findNavController().navigateUp() // Kembali ke Fragment sebelumnya
+                binding.txtInputNewNominal.text?.clear()
+                binding.txtInputNewNote.text?.clear()
+                updateProgressUI()
             }
         }
     }
 
+    /* ------------------- Progress & helper ------------------- */
     private fun updateProgressUI() {
         val budget = selectedBudget ?: return
         lifecycleScope.launch(Dispatchers.IO) {
